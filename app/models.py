@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import EmailStr, FilePath
+from pydantic import BaseModel, EmailStr, FilePath
 from sqlmodel import Relationship, SQLModel, Field
 
 
@@ -34,16 +34,20 @@ class ArticlesHaveTags(SQLModel, table=True):
 class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     email: EmailStr = Field(unique=True, index=True, max_length=255)
-    password_hash: str
     username: str = Field(unique=True, index=True, max_length=40)
+    password_hash: str
     bio: str | None = None
     image: FilePath | None = Field(default=None, unique=True)
 
     followers: list["User"] = Relationship(
-        back_populates="following", link_model=UsersFollowUsers
+        back_populates="following",
+        link_model=UsersFollowUsers,
+        sa_relationship_kwargs={"foreign_keys": [UsersFollowUsers.user_followed_id]},
     )
     following: list["User"] = Relationship(
-        back_populates="followers", link_model=UsersFollowUsers
+        back_populates="followers",
+        link_model=UsersFollowUsers,
+        sa_relationship_kwargs={"foreign_keys": [UsersFollowUsers.user_following_id]},
     )
 
     favorite_articles: list["Article"] = Relationship(
@@ -51,7 +55,7 @@ class User(SQLModel, table=True):
     )
 
     commented_articles: list["UsersCommentArticles"] = Relationship(
-        back_populates="commenting_user", link_model=UsersCommentArticles
+        back_populates="commenting_user"
     )
 
 
@@ -66,7 +70,7 @@ class Article(SQLModel, table=True):
 
     author_id: int = Field(foreign_key="user.id")
 
-    favoriting_users: list["Article"] = Relationship(
+    favoriting_users: list["User"] = Relationship(
         back_populates="favorite_articles", link_model=UsersFavourArticles
     )
 

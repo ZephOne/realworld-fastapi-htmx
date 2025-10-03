@@ -1,12 +1,12 @@
-from sqlmodel import SQLModel
+from fastapi import FastAPI
 
-from app.db import engine
-
-
-def main():
-    SQLModel.metadata.drop_all(engine)
-    SQLModel.metadata.create_all(engine)
+from app.routers.articles import router as articles_router
+from app.routers.tags import router as tags_router
+from app.routers.users import router as users_router
 
 
-if __name__ == "__main__":
-    main()
+app = FastAPI()
+
+app.include_router(articles_router)
+app.include_router(tags_router)
+app.include_router(users_router)
